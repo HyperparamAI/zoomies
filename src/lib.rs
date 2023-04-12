@@ -140,7 +140,7 @@ impl UdpClient {
     }
 
     pub async fn send_with_tags<M: DatagramFormat, T: DatagramFormat>(&self, df: &M, tags: &T) -> Result<()> {
-        let content = df.format() + tags.format();
+        let content = df.format() + &tags.format();
         self.socket
             .send_to(content.as_bytes(), &self.config.to_addr)
             .await?;
