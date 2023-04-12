@@ -159,8 +159,10 @@ impl UdsClient {
     where
         P: Into<borrow::Cow<'a, str>>,
     {
+        let socket = UnixDatagram::unbound()?;
+        socket.connect(&path.into().to_string())?;
         Ok(Self {
-            socket: UnixDatagram::bind(path.into().to_string())?,
+            socket,
         })
     }
 
@@ -181,7 +183,7 @@ impl UdsClient {
 
 #[cfg(test)]
 mod test {
-    use super::DatagramFormat;
+    use super::{DatagramFormat, UdsClient, UnixDatagram};
     use std::collections::HashMap;
 
     #[test]
@@ -209,5 +211,21 @@ mod test {
             timber_resources.format(),
             "|#Norway:100,Denmark:50,Iceland:10"
         );
+    }
+
+    #[test]
+    fn test_uds_socket() {
+        use tokio::runtime::Runtime;
+
+        let rt = Runtime::new().unwrap();
+        let result = rt.block_on(async {
+            let tmp = tempfile::tempdir().unwrap();
+            let path = tmp.path().join("agent.socket");
+            let agent = UnixDatagram::bind(&path).unwrap();
+            let path = path.into_os_string().into_string().unwrap();
+            UdsClient::with_filepath(&path).await
+        });
+
+        assert_eq!(result.is_ok(), true);
     }
 }
