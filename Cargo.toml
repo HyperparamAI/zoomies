@@ -9,7 +9,7 @@ keywords = [ "datadog", "dogstatsd", "client", "async" ]
 edition = "2018"
 
 [dependencies]
-async-std = { version = "1.6.3" }
+tokio = { version = "1", features = ["full"]}
 num-integer = "0.1.43"
 
 [[bin]]

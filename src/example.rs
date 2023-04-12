@@ -1,10 +1,12 @@
 use zoomies::{Config, Event, Metric, UdpClient};
 
-use async_std::io;
-use async_std::task;
+use tokio::io;
+use tokio::runtime::Runtime;
 
 fn main() -> io::Result<()> {
-    task::block_on(async {
+    let rt  = Runtime::new().unwrap();
+
+    rt.block_on(async {
         let config = Config::new();
         let client = UdpClient::with_config(config).await?;
         client.send(&Metric::Inc::<u32>("zoomies")).await?;

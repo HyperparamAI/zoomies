@@ -20,7 +20,7 @@
 //! ```
 use std::{borrow, collections::HashMap, default, fmt};
 
-use async_std::{io::Result, net::UdpSocket, os::unix::net::UnixDatagram};
+use tokio::{io::Result, net::UdpSocket, net::UnixDatagram};
 
 mod events;
 pub use events::*;
@@ -160,7 +160,7 @@ impl UdsClient {
         P: Into<borrow::Cow<'a, str>>,
     {
         Ok(Self {
-            socket: UnixDatagram::bind(path.into().to_string()).await?,
+            socket: UnixDatagram::bind(path.into().to_string())?,
         })
     }
 
