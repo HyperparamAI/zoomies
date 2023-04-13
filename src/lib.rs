@@ -199,14 +199,9 @@ mod test {
     }
 
     #[test]
-    #[ignore]
+    #[ignore] // TODO find better way to test this as iterator creation order is not idempotent.
     fn test_multiple_tags() {
-        // TODO find better way to test this as iterator creation order is not idempotent.
-        let timber_resources: HashMap<&str, i32> =
-            [("Norway", 100), ("Denmark", 50), ("Iceland", 10)]
-                .iter()
-                .cloned()
-                .collect();
+        let timber_resources: HashMap<&str, i32> = HashMap::from([("Norway", 100), ("Denmark", 50), ("Iceland", 10)]);
         assert_eq!(
             timber_resources.format(),
             "|#Norway:100,Denmark:50,Iceland:10"

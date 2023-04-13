@@ -1,7 +1,5 @@
 use std::fmt;
 
-use num_integer::Integer;
-
 use crate::DatagramFormat;
 /// The module, `zoomies::metrics`, implements the following metric types that are accepted by DataDog.
 ///
@@ -19,19 +17,21 @@ pub enum Metric<'a, T> {
     Inc(&'a str),
     Dec(&'a str),
     Arb(&'a str, T),
-    Gauge(&'a str, &'a str),
-    Histogram(&'a str, &'a str),
-    Distribution(&'a str, &'a str),
-    Set(&'a str, &'a str),
+    Gauge(&'a str, T),
+    Histogram(&'a str, T),
+    Distribution(&'a str, T),
+    Set(&'a str, T),
+    Time(&'a str, T),
 }
 
-impl<'a, T: fmt::Display + Integer> DatagramFormat for Metric<'a, T> {
+impl<'a, T: fmt::Display + num_traits::Num> DatagramFormat for Metric<'a, T> {
     fn format(&self) -> String {
         let (metric_name, value, identifier) = match &*self {
             Metric::Set(metric_name, value) => (metric_name, value.to_string(), "|s"),
             Metric::Gauge(metric_name, value) => (metric_name, value.to_string(), "|g"),
             Metric::Histogram(metric_name, value) => (metric_name, value.to_string(), "|h"),
             Metric::Distribution(metric_name, value) => (metric_name, value.to_string(), "|d"),
+            Metric::Time(metric_name, value) => (metric_name, value.to_string(), "|ms"),
             count => {
                 let (name, val) = match count {
                     Metric::Inc(metric_name) => (metric_name, "1".to_string()),
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn test_metrics_gauge() {
         assert_eq!(
-            Metric::Gauge::<u32>("custom_metric", "3").format(),
+            Metric::Gauge::<u32>("custom_metric", 3).format(),
             "custom_metric:3|g"
         );
     }
@@ -96,15 +96,15 @@ mod tests {
     #[test]
     fn test_metrics_set() {
         assert_eq!(
-            Metric::Set::<u32>("custom_metric", "person").format(),
-            "custom_metric:person|s"
+            Metric::Set::<u32>("custom_metric", 789).format(),
+            "custom_metric:789|s"
         );
     }
 
     #[test]
     fn test_metrics_histogram() {
         assert_eq!(
-            Metric::Histogram::<u32>("custom_metric", "240").format(),
+            Metric::Histogram::<u32>("custom_metric", 240).format(),
             "custom_metric:240|h"
         );
     }
@@ -112,8 +112,16 @@ mod tests {
     #[test]
     fn test_metrics_distribution() {
         assert_eq!(
-            Metric::Distribution::<u32>("custom_metric", "42").format(),
+            Metric::Distribution::<u32>("custom_metric", 42).format(),
             "custom_metric:42|d"
+        );
+    }
+
+    #[test]
+    fn test_metrics_time() {
+        assert_eq!(
+            Metric::Time::<f32>("custom_metric", 123.45).format(),
+            "custom_metric:123.45|ms"
         );
     }
 }
